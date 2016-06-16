@@ -494,7 +494,7 @@ print(rf)
 Let's see how accurate it is on the pre-final test dataset.
 
 ```{r, eval = FALSE}
-rfModel <- predict.train(classTree, newdata = subTest)
+rfModel <- predict.train(rf, newdata = subTest)
 
 confusionMatrix(rfModel, subTestLabel)
 ```
@@ -517,7 +517,7 @@ Now that I have selected my best model, I need to separate the outcome from the 
 
 ```{r}
 finalTest <- cleanTest[, -12]
-finalTestLabel <- finalTest[, 12]
+finalTestLabel <- cleanTest[, 12]
 ```
 
 ## Final predictions
@@ -525,13 +525,16 @@ finalTestLabel <- finalTest[, 12]
 Finally we can try out the selected model on the final test dataset.
 
 ```{r, eval = FALSE}
-rfModelPred <- predict.train(rfModel, newdata = finalTest)
+rfModelPred <- predict.train(rf, newdata = finalTest)
+## treeModelPred <- predict.train(classTree, newdata = finalTest)
 ```
 
 ## Comparison
 
 ```{r, eval = FALSE}
 confusionMatrix(rfModelPred, finalTestLabel)
+## confusionMatrix(treeModelPred, finalTestLabel)
+## Accuracy : 0.9427 Kappa : 0.3444
 ```
 
 # Challenges
