@@ -470,7 +470,7 @@ dotPlot(treeVarImp)
 
 Same approach for this famous model except that I have added two tuning parameters to the Random Forest algorithm: `mtry`and `ntree`. 
 
-```{r, cache = TRUE}
+```{r, cache = TRUE, eval = FALSE}
 set.seed(seed)
 rfGrid <- expand.grid(mtry = )
 
@@ -485,7 +485,7 @@ rf <- train(x = subTrain,
 
 These are the results based on the training set.
 
-```{r}
+```{r, eval = FALSE}
 print(rf)
 ```
 
@@ -493,7 +493,7 @@ print(rf)
 
 Let's see how accurate it is on the pre-final test dataset.
 
-```{r}
+```{r, eval = FALSE}
 rfModel <- predict.train(classTree, newdata = subTest)
 
 confusionMatrix(rfModel, subTestLabel)
@@ -503,7 +503,7 @@ The accuracy does not look bad with 94%.
 
 ### Variables importance
 
-```{r}
+```{r, eval = FALSE}
 rfVarImp <- varImp(rf)
 
 dotPlot(rfVarImp)
@@ -516,21 +516,21 @@ dotPlot(rfVarImp)
 Now that I have selected my best model, I need to separate the outcome from the rest of the dataset.
 
 ```{r}
-finalTest <- cleanTest[, -cleanTest$incomes]
-finalTestLabel <- finalTest[, cleanTest$incomes]
+finalTest <- cleanTest[, -12]
+finalTestLabel <- finalTest[, 12]
 ```
 
 ## Final predictions
 
 Finally we can try out the selected model on the final test dataset.
 
-```{r}
+```{r, eval = FALSE}
 rfModelPred <- predict.train(rfModel, newdata = finalTest)
 ```
 
 ## Comparison
 
-```{r}
+```{r, eval = FALSE}
 confusionMatrix(rfModelPred, finalTestLabel)
 ```
 
