@@ -428,9 +428,13 @@ tControl <- trainControl(method = "repeatedcv",
 
 ### Training model
 
+For the model to be trained faster, we assign its complexity parameter.
+
 ```{r}
 treeGrid <- expand.grid(cp = 0.0004542701)
 ```
+
+And now we train.
 
 ```{r, cache = TRUE}
 set.seed(seed)
@@ -440,7 +444,8 @@ classTree <- train(x = subTrain,
                    y = subTrainLabel,
                    method = "rpart",
                    trControl = tControl,
-                   tuneLength = 5)
+                   tuneLength = 5,
+                   tuneGrid = treeGrid)
 
 print(classTree)
 ```
@@ -456,7 +461,7 @@ treeModel <- predict.train(classTree, newdata = subTest)
 confusionMatrix(treeModel, subTestLabel)
 ```
 
-The accuracy does not look bad with 94%.
+The accuracy does not look bad but the Kappa metric could be better.
 
 ### Variables importance
 
@@ -466,54 +471,50 @@ treeVarImp <- varImp(classTree)
 dotPlot(treeVarImp)
 ```
 
-## Random Forest
+## Logistic regression
 
-Same approach for this famous model except that I have added two tuning parameters to the Random Forest algorithm: `mtry`and `ntree`. 
+Same approach for this model. 
 
-```{r, cache = TRUE, eval = FALSE}
+```{r, cache = TRUE}
 set.seed(seed)
-rfGrid <- expand.grid(mtry = )
-
-rf <- train(x = subTrain,
+glm <- train(x = subTrain,
             y = subTrainLabel,
-            method = "rf",
-            trControl = tControl,
-            tuneLength = 5,
-            ntree = ,
-            tuneGrid = rfGrid)
+            method = "glm",
+            family = "binomial")
 ```
 
 These are the results based on the training set.
 
-```{r, eval = FALSE}
-print(rf)
+```{r}
+print(glm)
 ```
 
 ### Checking predictions
 
 Let's see how accurate it is on the pre-final test dataset.
 
-```{r, eval = FALSE}
-rfModel <- predict.train(rf, newdata = subTest)
+```{r}
+glmModel <- predict.train(glm, newdata = subTest)
+## Accuracy : 0.9420 Kappa : 0.3221
 
-confusionMatrix(rfModel, subTestLabel)
+confusionMatrix(glmModel, subTestLabel)
 ```
 
-The accuracy does not look bad with 94%.
+The accuracy is quite similar to the classification tree's.
 
 ### Variables importance
 
 ```{r, eval = FALSE}
-rfVarImp <- varImp(rf)
+glmVarImp <- varImp(glm)
 
-dotPlot(rfVarImp)
+dotPlot(glmVarImp)
 ```
 
 # Outcome prediction
 
 ## Preping test dataset
 
-Now that I have selected my best model, I need to separate the outcome from the rest of the dataset.
+Now that I have selected my best model - the classification tree -, I need to separate the outcome from the rest of the dataset.
 
 ```{r}
 finalTest <- cleanTest[, -12]
@@ -524,16 +525,14 @@ finalTestLabel <- cleanTest[, 12]
 
 Finally we can try out the selected model on the final test dataset.
 
-```{r, eval = FALSE}
-rfModelPred <- predict.train(rf, newdata = finalTest)
-## treeModelPred <- predict.train(classTree, newdata = finalTest)
+```{r}
+treeModelPred <- predict.train(classTree, newdata = finalTest)
 ```
 
 ## Comparison
 
-```{r, eval = FALSE}
-confusionMatrix(rfModelPred, finalTestLabel)
-## confusionMatrix(treeModelPred, finalTestLabel)
+```{r}
+confusionMatrix(treeModelPred, finalTestLabel)
 ## Accuracy : 0.9427 Kappa : 0.3444
 ```
 
@@ -551,3 +550,7 @@ My biggest challenge was to complete the exercise within a day. The points that 
 I knew I could not complete a work as thorough I would have liked. So I had to make 'sacrifices' and choose the variables I had to work on and the ones I had to leave. 
 I took the variables that needed some feature engineering and that are accessible. Even though I ended up with this report, I know I could make a more thorough analysis.
 
+## Model selection
+
+Again it takes long to train a model, particularly with the `caret` package. Jurst for fun, I have tried a Random forest and eventually found out that it was not exactly what I expected. 
+I finally opted for a Logistic regression as the second algorithm.

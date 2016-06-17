@@ -679,45 +679,27 @@ tControl <- trainControl(method = "repeatedcv",
 
 ### Training model
 
+For the model to be trained faster, we assign its complexity parameter.
+
 
 ```r
 treeGrid <- expand.grid(cp = 0.0004542701)
 ```
 
+And now we train.
+
 
 ```r
 set.seed(seed)
 require(e1071)
-```
 
-```
-## Loading required package: e1071
-```
-
-```
-## 
-## Attaching package: 'e1071'
-```
-
-```
-## The following object is masked from 'package:Hmisc':
-## 
-##     impute
-```
-
-```r
 classTree <- train(x = subTrain,
                    y = subTrainLabel,
                    method = "rpart",
                    trControl = tControl,
-                   tuneLength = 5)
-```
+                   tuneLength = 5,
+                   tuneGrid = treeGrid)
 
-```
-## Loading required package: rpart
-```
-
-```r
 print(classTree)
 ```
 
@@ -731,17 +713,13 @@ print(classTree)
 ## No pre-processing
 ## Resampling: Cross-Validated (5 fold, repeated 2 times) 
 ## Summary of sample sizes: 127695, 127693, 127694, 127695, 127695, 127694, ... 
-## Resampling results across tuning parameters:
+## Resampling results:
 ## 
-##   cp           Accuracy   Kappa    
-##   0.001110438  0.9422246  0.3208365
-##   0.001160913  0.9421713  0.3256649
-##   0.002826570  0.9420084  0.3263654
-##   0.004946497  0.9418800  0.3250259
-##   0.008378760  0.9390388  0.1249515
+##   Accuracy   Kappa   
+##   0.9423499  0.318679
 ## 
-## Accuracy was used to select the optimal model using  the largest value.
-## The final value used for the model was cp = 0.001110438.
+## Tuning parameter 'cp' was held constant at a value of 0.0004542701
+## 
 ```
 
 ### Checking predictions
@@ -785,7 +763,7 @@ confusionMatrix(treeModel, subTestLabel)
 ## 
 ```
 
-The accuracy does not look bad with 94%.
+The accuracy does not look bad but the Kappa metric could be better.
 
 ### Variables importance
 
@@ -798,29 +776,96 @@ dotPlot(treeVarImp)
 
 ![](us_census_files/figure-html/unnamed-chunk-29-1.png)<!-- -->
 
-## Random Forest
+## Logistic regression
 
-Same approach for this famous model except that I have added two tuning parameters to the Random Forest algorithm: `mtry`and `ntree`. 
+Same approach for this model. 
 
 
 ```r
 set.seed(seed)
-rfGrid <- expand.grid(mtry = )
-
-rf <- train(x = subTrain,
+glm <- train(x = subTrain,
             y = subTrainLabel,
-            method = "rf",
-            trControl = tControl,
-            tuneLength = 5,
-            ntree = ,
-            tuneGrid = rfGrid)
+            method = "glm",
+            family = "binomial")
+```
+
+```
+## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+
+## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+
+## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+
+## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+
+## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+
+## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+
+## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+
+## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+
+## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+
+## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+
+## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+
+## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+
+## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+
+## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+
+## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+
+## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+
+## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+
+## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+
+## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+
+## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+
+## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+
+## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+
+## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+
+## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+
+## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+
+## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
 ```
 
 These are the results based on the training set.
 
 
 ```r
-print(rf)
+print(glm)
+```
+
+```
+## Generalized Linear Model 
+## 
+## 159618 samples
+##     16 predictor
+##      2 classes: '-50k', '50k+' 
+## 
+## No pre-processing
+## Resampling: Bootstrapped (25 reps) 
+## Summary of sample sizes: 159618, 159618, 159618, 159618, 159618, 159618, ... 
+## Resampling results:
+## 
+##   Accuracy   Kappa    
+##   0.9420471  0.3220893
+## 
+## 
 ```
 
 ### Checking predictions
@@ -829,32 +874,62 @@ Let's see how accurate it is on the pre-final test dataset.
 
 
 ```r
-rfModel <- predict.train(classTree, newdata = subTest)
+glmModel <- predict.train(glm, newdata = subTest)
+## Accuracy : 0.9420 Kappa : 0.3221
 
-confusionMatrix(rfModel, subTestLabel)
+confusionMatrix(glmModel, subTestLabel)
 ```
 
-The accuracy does not look bad with 94%.
+```
+## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction  -50k  50k+
+##       -50k 36977  1843
+##       50k+   451   633
+##                                           
+##                Accuracy : 0.9425          
+##                  95% CI : (0.9402, 0.9448)
+##     No Information Rate : 0.938           
+##     P-Value [Acc > NIR] : 7.017e-05       
+##                                           
+##                   Kappa : 0.3303          
+##  Mcnemar's Test P-Value : < 2.2e-16       
+##                                           
+##             Sensitivity : 0.9880          
+##             Specificity : 0.2557          
+##          Pos Pred Value : 0.9525          
+##          Neg Pred Value : 0.5839          
+##              Prevalence : 0.9380          
+##          Detection Rate : 0.9266          
+##    Detection Prevalence : 0.9728          
+##       Balanced Accuracy : 0.6218          
+##                                           
+##        'Positive' Class : -50k            
+## 
+```
+
+The accuracy is quite similar to the classification tree's.
 
 ### Variables importance
 
 
 ```r
-rfVarImp <- varImp(rf)
+glmVarImp <- varImp(glm)
 
-dotPlot(rfVarImp)
+dotPlot(glmVarImp)
 ```
 
 # Outcome prediction
 
 ## Preping test dataset
 
-Now that I have selected my best model, I need to separate the outcome from the rest of the dataset.
+Now that I have selected my best model - the classification tree -, I need to separate the outcome from the rest of the dataset.
 
 
 ```r
 finalTest <- cleanTest[, -12]
-finalTestLabel <- finalTest[, 12]
+finalTestLabel <- cleanTest[, 12]
 ```
 
 ## Final predictions
@@ -863,14 +938,47 @@ Finally we can try out the selected model on the final test dataset.
 
 
 ```r
-rfModelPred <- predict.train(rfModel, newdata = finalTest)
+treeModelPred <- predict.train(classTree, newdata = finalTest)
 ```
 
 ## Comparison
 
 
 ```r
-confusionMatrix(rfModelPred, finalTestLabel)
+confusionMatrix(treeModelPred, finalTestLabel)
+```
+
+```
+## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction  -50k  50k+
+##       -50k 92412  4554
+##       50k+  1163  1632
+##                                           
+##                Accuracy : 0.9427          
+##                  95% CI : (0.9412, 0.9441)
+##     No Information Rate : 0.938           
+##     P-Value [Acc > NIR] : 2.432e-10       
+##                                           
+##                   Kappa : 0.3379          
+##  Mcnemar's Test P-Value : < 2.2e-16       
+##                                           
+##             Sensitivity : 0.9876          
+##             Specificity : 0.2638          
+##          Pos Pred Value : 0.9530          
+##          Neg Pred Value : 0.5839          
+##              Prevalence : 0.9380          
+##          Detection Rate : 0.9263          
+##    Detection Prevalence : 0.9720          
+##       Balanced Accuracy : 0.6257          
+##                                           
+##        'Positive' Class : -50k            
+## 
+```
+
+```r
+## Accuracy : 0.9427 Kappa : 0.3444
 ```
 
 # Challenges
@@ -887,3 +995,7 @@ My biggest challenge was to complete the exercise within a day. The points that 
 I knew I could not complete a work as thorough I would have liked. So I had to make 'sacrifices' and choose the variables I had to work on and the ones I had to leave. 
 I took the variables that needed some feature engineering and that are accessible. Even though I ended up with this report, I know I could make a more thorough analysis.
 
+## Model selection
+
+Again it takes long to train a model, particularly with the `caret` package. Jurst for fun, I have tried a Random forest and eventually found out that it was not exactly what I expected. 
+I finally opted for a Logistic regression as the second algorithm.
